@@ -8,7 +8,7 @@ using Plots
 
 hill(s, km, n) = (s^n + km^n) /  (s^n + km^n)
 
-eq = [
+eqs = [
     D(H) ~ k₁ * (1-α)*hill(S, KM₁, n₁) * hill(H, KM₂, n₂) + k₂ - k₃*H,
     D(S) ~ k₄ * (1-β)*hill(H, KM₃,n₃) * hill(S, KM₄, n₄)*(S_tot - S) + k₅ - k₆*S
 ]
@@ -31,9 +31,9 @@ p =[k₁ => 40,
     β => 0.95,
     S_tot => 225]
 
-u = [
-    H => 10.0,
-    S => 10.0
+u0 = [
+    H => 100.0,
+    S => 100.0
 ]
 
 sys = ODESystem(eqs)
@@ -41,3 +41,11 @@ tspan = (0.0,100.0)
 
 prob = ODEProblem(sys,u0,tspan,p,jac=true)
 sol = solve(prob)
+
+plot(sol)
+
+## Solve Nullcline
+
+ode_f = ODEFunction(sys)
+
+substitute.(eqs[1].rhs,p)

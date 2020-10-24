@@ -23,3 +23,11 @@ F_S = OdeModel.F_S
 eq = Dt(p) ~ - Dh(F_H*p) - Ds(F_S*p) + D_H * Dhh(p) + D_S *Dss(p)
 
 # boundary conditions
+bcs = [
+
+]
+
+domains = [ S ∈ IntervalDomain(0.0,225.0),
+            H ∈ IntervalDomain(0.0,3725.0)]
+
+# To Do 

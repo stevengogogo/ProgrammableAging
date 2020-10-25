@@ -1,3 +1,4 @@
+
 using NeuralPDE, Flux, ModelingToolkit, GalacticOptim, Optim, DiffEqFlux
 
 cb = function (p,l)
@@ -44,6 +45,17 @@ H0, S0 = 3275.0, 112.0
 F_H = k₁ * (1. -α)*hill(S, KM₁, n₁) * hill(KM₁, S, n₁) * hill(H, KM₂, n₂) + k₂ - k₃*H
 F_S = k₄ * (1. -β)*hill(H, KM₃,n₃)  * hill(KM₃, H, n₃)  * hill(S, KM₄, n₄)*(S_tot - S) + k₅ - k₆*S
 
+##
+using SymPy
+
+S, H = symbols("S H")
+
+
+
+F_H = k₁ * (1. -α)*hill(S, KM₁, n₁) * hill(KM₁, S, n₁) * hill(H, KM₂, n₂) + k₂ - k₃*H
+F_S = k₄ * (1. -β)*hill(H, KM₃,n₃)  * hill(KM₃, H, n₃)  * hill(S, KM₄, n₄)*(S_tot - S) + k₅ - k₆*S # get the derivatives
+
+## derivate here
 
 # Discretization
 dS = 1.0; dH=10.0;

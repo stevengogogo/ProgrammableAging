@@ -48,33 +48,33 @@ F_H = substitute.(F_H, (p_,))[1]
 F_S = substitute.(F_S, (p_,))[1]
 
 
-# Discretization
-dx = 1
+
 
 σ_H, σ_S = 5000.0, 150.0
 H0, S0 = 3275.0, 112.0
 
-eq = [0. ~ - Dh(F_H*p(S,H,θ)) - Ds(F_S*p(S,H,θ)) + 500.0 * Dhh(p(S,H,θ)) + 0.45 *Dss(p(S,H,θ)),
-      dx * p(S,H,θ) ~ 1.]
+eq = Dt(p(S,H,t,θ)) ~ - Dh(F_H*p(S,H,t,θ)) - Ds(F_S*p(S,H,t,θ)) + 500.0 * Dhh(p(S,H,t,θ)) + 0.45 *Dss(p(S,H,t,θ))
 
 # Domains
-domains = [ S ∈ IntervalDomain(0.0,225.0),
-            H ∈ IntervalDomain(0.0,3725.0)]
+domains = [ S ∈ IntervalDomain(0.0,3.0),
+            H ∈ IntervalDomain(0.0,3.0),
+            t ∈ IntervalDomain(0.0,3.0)]
 S_max = domains[1].domain.upper
 H_max = domains[2].domain.upper
+
 # boundary conditions
+norm2(X, a, b) = (X-a)^2 / b^2
 bcs = [
-    p(0,H) ~ 0.f0,
-    p(S,0) ~ 0.f0,
-    p(S_max,H) ~ 0.f0,
-    p(S,H_max) ~ 0.f0,
+    p(S,H, 0, θ) ~  (2*pi*σ_H*σ_S)^-1 * exp( -norm2(H,H0, σ_H) - norm2(S,S0, σ_S)  )
+    p(0,H,t,θ) ~ 0.f0,
+    p(S,0,t,θ) ~ 0.f0,
+    p(S_max,H,t,θ) ~ 0.f0,
+    p(S,H_max,t,θ) ~ 0.f0,
 ]
 
-# Initial Value
-norm2(X, a, b) = (X-a)^2 / b^2
 
-p0(h,s) = (2*pi*σ_H*σ_S)^-1 * exp( -norm2(h,H0, σ_H) - norm2(s,S0, σ_S)  )
-
+# Discretization
+dS = 1.0; dH=1.0; dt = 1.0
 
 
 
@@ -83,15 +83,23 @@ p0(h,s) = (2*pi*σ_H*σ_S)^-1 * exp( -norm2(h,H0, σ_H) - norm2(s,S0, σ_S)  )
 # Nerual Network
 dim = 1
 
-chain = FastChain(FastDense(dim,16,Flux.σ),FastDense(16,16,Flux.σ),FastDense(16,1))
+chain = FastChain(FastDense(3,16,Flux.σ),FastDense(16,16,Flux.σ),FastDense(16,1)) |> gpu
+
+initθ = initial_params(chain) |> gpu
+
+discretization = NeuralPDE.PhysicsInformedNN([dS,dH,dt],
+                                             chain,
+                                             initθ,
+                                             strategy = NeuralPDE.StochasticTraining(include_frac=0.9))
+
+pde_system = PDESystem(eq,bcs,domains,[S,H,t],[p])
 
 
-discretization = PhysicsInformedNN(dx, chain,
-                        strategy= NeuralPDE.GridTraining())
+prob = NeuralPDE.discretize(pde_system,discretization)
 
-pde_system = PDESystem(eq, bcs, domains, [S, H], [p])
 
-@time prob = discretize(pde_system,discretization)
+@time res = GalacticOptim.solve(prob, ADAM(0.1), progress = false; cb = cb, maxiters=3000)
+phi = discretization.phi
 
 cb = function (p,l)
     println("Current loss is: $l")

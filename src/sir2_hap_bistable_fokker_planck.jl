@@ -56,16 +56,16 @@ H0, S0 = 3275.0, 112.0
 eq = Dt(p(S,H,t,θ)) ~ - Dh(F_H*p(S,H,t,θ)) - Ds(F_S*p(S,H,t,θ)) + 500.0 * Dhh(p(S,H,t,θ)) + 0.45 *Dss(p(S,H,t,θ))
 
 # Domains
-domains = [ S ∈ IntervalDomain(0.0,3.0),
-            H ∈ IntervalDomain(0.0,3.0),
-            t ∈ IntervalDomain(0.0,3.0)]
+domains = [ S ∈ IntervalDomain(0.0,112.0),
+            H ∈ IntervalDomain(0.0,3275.0),
+            t ∈ IntervalDomain(0.0,300.0)]
 S_max = domains[1].domain.upper
 H_max = domains[2].domain.upper
 
 # boundary conditions
 norm2(X, a, b) = (X-a)^2 / b^2
 bcs = [
-    p(S,H, 0, θ) ~  (2*pi*σ_H*σ_S)^-1 * exp( -norm2(H,H0, σ_H) - norm2(S,S0, σ_S)  )
+    p(S,H, 0, θ) ~  (2*pi*σ_H*σ_S)^-1 * exp( -norm2(H,H0, σ_H) - norm2(S,S0, σ_S)  ),
     p(0,H,t,θ) ~ 0.f0,
     p(S,0,t,θ) ~ 0.f0,
     p(S_max,H,t,θ) ~ 0.f0,
@@ -74,7 +74,7 @@ bcs = [
 
 
 # Discretization
-dS = 1.0; dH=1.0; dt = 1.0
+dS = 10.0; dH=100.0; dt = 10.0
 
 
 
@@ -83,9 +83,9 @@ dS = 1.0; dH=1.0; dt = 1.0
 # Nerual Network
 dim = 1
 
-chain = FastChain(FastDense(3,16,Flux.σ),FastDense(16,16,Flux.σ),FastDense(16,1)) |> gpu
+chain = FastChain(FastDense(3,16,Flux.σ),FastDense(16,16,Flux.σ),FastDense(16,1))
 
-initθ = initial_params(chain) |> gpu
+initθ = initial_params(chain)
 
 discretization = NeuralPDE.PhysicsInformedNN([dS,dH,dt],
                                              chain,
@@ -98,15 +98,13 @@ pde_system = PDESystem(eq,bcs,domains,[S,H,t],[p])
 prob = NeuralPDE.discretize(pde_system,discretization)
 
 
-@time res = GalacticOptim.solve(prob, ADAM(0.1), progress = false; cb = cb, maxiters=3000)
-phi = discretization.phi
-
 cb = function (p,l)
     println("Current loss is: $l")
     return false
 end
 
-res = GalacticOptim.solve(prob, Optim.BFGS(); cb = cb, maxiters=1000)
+@time res = GalacticOptim.solve(prob, ADAM(0.1), progress = false; cb = cb, maxiters=3000)
+
 phi = discretization.phi
 
 

@@ -38,4 +38,4 @@ The proposed method fails to simulate the FP stationary state.
 ### Reference
 1. > Li, Yang, et al. ["A programmable fate decision landscape underlies single-cell aging in yeast."](https://science.sciencemag.org/content/369/6501/325) Science 369.6501 (2020): 325-329.
 2. Repository: [ProgrammableAging](https://github.com/stevengogogo/ProgrammableAging)
-3. [Slides](https://drive.google.com/file/d/1Fl3OGAg8WRCwlVqIRpAy9ERsougJxvxi/view?usp=sharing)
+

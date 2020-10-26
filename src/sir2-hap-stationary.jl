@@ -46,14 +46,14 @@ F_H = k₁ * (1. -α)*hill(S, KM₁, n₁) * hill(KM₁, S, n₁) * hill(H, KM�
 F_S = k₄ * (1. -β)*hill(H, KM₃,n₃)  * hill(KM₃, H, n₃)  * hill(S, KM₄, n₄)*(S_tot - S) + k₅ - k₆*S
 
 ##
-using SymPy
+#using SymPy
 
-S, H = symbols("S H")
+#S, H = symbols("S H")
 
 
 
-F_H = k₁ * (1. -α)*hill(S, KM₁, n₁) * hill(KM₁, S, n₁) * hill(H, KM₂, n₂) + k₂ - k₃*H
-F_S = k₄ * (1. -β)*hill(H, KM₃,n₃)  * hill(KM₃, H, n₃)  * hill(S, KM₄, n₄)*(S_tot - S) + k₅ - k₆*S # get the derivatives
+#F_H = k₁ * (1. -α)*hill(S, KM₁, n₁) * hill(KM₁, S, n₁) * hill(H, KM₂, n₂) + k₂ - k₃*H
+#F_S = k₄ * (1. -β)*hill(H, KM₃,n₃)  * hill(KM₃, H, n₃)  * hill(S, KM₄, n₄)*(S_tot - S) + k₅ - k₆*S # get the derivatives
 
 ## derivate here
 
@@ -96,16 +96,56 @@ bcs = [
 
 
 
+##
 
-# Neural Network
-chain = FastChain(FastDense(2,12,Flux.σ),FastDense(12,12,Flux.σ),FastDense(12,1))
+# Neural network
+chain = FastChain(FastDense(2,16,Flux.σ),FastDense(16,16,Flux.σ),FastDense(16,1))
 
-discretization = NeuralPDE.PhysicsInformedNN([dS,dH],
-                                             chain,
-                                             strategy=NeuralPDE.StochasticTraining(include_frac=0.5))
+strategy = GridTraining()
+discretization = PhysicsInformedNN([dS,dH],chain,strategy=strategy)
 
-pde_system = PDESystem(eq,bcs,domains,[S, H],[p])
-prob = discretize(pde_system,discretization)
+indvars = [S,H]
+depvars = [p]
+dim = length(domains)
 
-@time res = GalacticOptim.solve(prob, Optim.BFGS(); cb = cb, maxiters=8000)
+expr_pde_loss_function = build_loss_function(eq,indvars,depvars)
+expr_bc_loss_functions = [build_loss_function(bc,indvars,depvars) for bc in bcs]
+
+train_sets = generate_training_sets(domains,[dS,dH],bcs,indvars,depvars)
+train_domain_set, train_bound_set, train_set= train_sets
+
 phi = discretization.phi
+autodiff = discretization.autodiff
+derivative = discretization.derivative
+initθ = discretization.initθ
+
+pde_loss_function = get_loss_function(eval(expr_pde_loss_function),
+                           train_domain_set,
+                           phi,
+                           derivative,
+                           strategy)
+bc_loss_function = get_loss_function(eval.(expr_bc_loss_functions),
+                          train_bound_set,
+                          phi,
+                          derivative,
+                          strategy)
+
+function loss_function(θ,p)
+    return pde_loss_function(θ) + bc_loss_function(θ)
+end
+f = OptimizationFunction(loss_function, GalacticOptim.AutoZygote())
+prob = GalacticOptim.OptimizationProblem(f, initθ)
+
+# optimizer
+opt = Optim.BFGS()
+res = GalacticOptim.solve(prob, opt; cb = cb, maxiters=1500)
+phi = discretization.phi
+
+
+
+# Analysis
+ss,hs = [domain.domain.lower:di:domain.domain.upper for domain in domains for di in [dS, dH]]
+
+u_predict  = [phi([t,x],res.minimizer)[i] for t in ss for x in hs]
+
+plot(ss,hs, u_predict[i], st=:surface,title = "predict");

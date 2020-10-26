@@ -29,7 +29,7 @@ The proposed method fails to simulate the FP stationary state.
 
 ---
 
-<img src="https://imgur.com/abJpq67.gif">
+![]("https://imgur.com/abJpq67.gif")
 
 **Video 1.** CNN estimated Potential landscape of Sir2-HAP model. (This is the preliminary version with compiling success but failed in using Multi-CPU and setting of initial values.) Produced by [sir2-hap-stationary.jl](https://github.com/stevengogogo/ProgrammableAging/blob/main/src/sir2-hap-stationary.jl).
 

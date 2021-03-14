@@ -5,7 +5,6 @@
 
 ## Current Status
 
-<img src="https://imgur.com/abJpq67.gif">
 
 
 ### Objectives

@@ -6,7 +6,7 @@
 
 ## Current Status
 
-![](https://imgur.com/abJpq67.gif)
+<img src="https://imgur.com/abJpq67.gif">
 
 
 ### Objectives

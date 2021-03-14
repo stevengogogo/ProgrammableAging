@@ -4,6 +4,10 @@
 
 ## Reimplementation of Sir2-HAP Potential Landscape [in progress]
 
+## Current Status
+
+![](https://imgur.com/abJpq67.gif)
+
 
 ### Objectives
 

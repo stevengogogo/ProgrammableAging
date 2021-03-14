@@ -1,8 +1,6 @@
 
 # ProgrammableAging
 
-<img width="648" alt="Screen Shot 2021-03-14 at 11 30 10 AM" src="https://user-images.githubusercontent.com/29009898/111056271-a6aaea80-84b8-11eb-96d9-4ddabbba4537.png">
-
 ## Reimplementation of Sir2-HAP Potential Landscape [in progress]
 
 ## Current Status
@@ -37,6 +35,14 @@ The proposed method fails to simulate the FP stationary state.
 ![](https://imgur.com/abJpq67.gif)
 
 **Video 1.** CNN estimated Potential landscape of Sir2-HAP model. (This is the preliminary version with compiling success but failed in using Multi-CPU and setting of initial values.) Produced by [sir2-hap-stationary.jl](https://github.com/stevengogogo/ProgrammableAging/blob/main/src/sir2-hap-stationary.jl).
+
+
+## Results
+
+<img width="200" alt="Screen Shot 2021-03-14 at 11 30 10 AM" src="https://user-images.githubusercontent.com/29009898/111056271-a6aaea80-84b8-11eb-96d9-4ddabbba4537.png">
+
+- Soling Fokker-Planck is computational demending (O(n^2)).
+- Try A-type Integration (O(n)). 
 
 ---
 

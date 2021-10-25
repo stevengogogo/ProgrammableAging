@@ -1,7 +1,7 @@
 
 # ProgrammableAging
 
-## Reimplementation of Sir2-HAP Potential Landscape [in progress]
+## Reimplementation of Sir2-HAP Potential Landscape 
 
 ## Current Status
 
